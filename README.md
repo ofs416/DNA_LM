@@ -1,4 +1,4 @@
-# DNA language Model
+# DNA Language Model
 
 ## Objectives
 
