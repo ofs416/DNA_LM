@@ -1,0 +1,24 @@
+Metadata-Version: 2.4
+Name: dna-lm
+Version: 0.1.0
+Summary: Add your description here
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: numpy>=2.4.2
+Requires-Dist: ruff>=0.15.1
+Requires-Dist: torch>=2.10.0
+Requires-Dist: wandb>=0.25.0
+Dynamic: license-file
+
+# DNA Language Model
+
+## Objectives
+
+- Create a custom transformer using Pytorch.
+- Pre-train a BERT-style transformer on the Human Reference Genome using masked language modelling and span masking. 
+- Apply mixed-precision training, FlashAttention, and gradient checkpointing for efficient training; benchmarked post-training quantisation, structured pruning and knowledge distillation for inference.
+- Compared against alternative transformer architectures on Genomic Benchmarks classification tasks with Hugging Face models.
+- Implement custom CUDA kernels for fused tokenisation and RoPE.
+- Track experiments tracked with W&B.
+
