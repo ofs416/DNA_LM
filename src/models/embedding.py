@@ -14,7 +14,7 @@ class PositionalEncoder(nn.Module):
         self.register_buffer("pe", pe)
 
     def forward(self, tokens):
-        return self.pe[: tokens.size(0), :] + tokens
+        return self.pe[: tokens.size(-2), :] + tokens
 
 
 if __name__ == "__main__":
