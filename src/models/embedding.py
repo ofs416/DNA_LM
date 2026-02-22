@@ -3,13 +3,23 @@ import torch.nn as nn
 
 
 class PositionalEncoder(nn.Module):
-    def __init__(self, d_model, max_len=5000):
+    def __init__(self, max_len, d_model):
         super().__init__()
-        self.pe = torch.zeros(max_len, d_model)
+        pe = torch.zeros(max_len, d_model)
         position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
-        div = torch.arange(0, d_model, 2).float() / d_model
-        self.pe[:, 0::2] = torch.sin(position * div)
-        self.pe[:, 1::2] = torch.cos(position * div)
+        div = torch.tensor(10_000) ** (torch.arange(0, d_model, 2).float() / d_model)
+        pos_div = position / div
+        pe[:, 0::2] = torch.sin(pos_div)
+        pe[:, 1::2] = torch.cos(pos_div)
+        self.register_buffer("pe", pe)
 
     def forward(self, tokens):
-        return self.pe[: tokens.size(1), :] + tokens
+        return self.pe[: tokens.size(0), :] + tokens
+
+
+if __name__ == "__main__":
+    enc = PositionalEncoder(32, 8)
+    print(enc.pe.shape)
+    tokens = torch.zeros(32, 8)
+    print(enc(tokens).shape)
+    print(enc.pe)
