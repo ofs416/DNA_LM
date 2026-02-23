@@ -44,11 +44,12 @@ class Transformer(nn.Module):
         self.mha = MHA(model_dim, num_heads)
         self.embedding = PositionalEncoder(max_len, model_dim)
         self.dense = nn.Linear(model_dim * num_heads, model_dim)
+        self.norm = nn.LayerNorm(model_dim)
 
     def forward(self, tokens):
         embeddings = self.embedding(tokens)
-        mha_output = self.mha(embeddings)
-        resdiual_output = (mha_output + embeddings.unsqueeze(1)).transpose(1, 2)
+        mha_output_norm = self.mha(self.norm(embeddings))
+        resdiual_output = (mha_output_norm + embeddings.unsqueeze(1)).transpose(1, 2)
         # resdiual_output shape: (batch_size, seq_len, num_heads, model_dim)
         dense_output = self.dense(
             resdiual_output.reshape(
@@ -57,6 +58,7 @@ class Transformer(nn.Module):
                 resdiual_output.size(2) * resdiual_output.size(3),
             )
         )
+
         return dense_output
 
 

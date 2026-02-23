@@ -1,11 +1,5 @@
-# test_encoder.py
-import sys
-import os
-
 import torch
 
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from src.models.embedding import PositionalEncoder
 
