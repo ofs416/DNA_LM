@@ -14,25 +14,25 @@ class MHA(nn.Module):
         self.W_k = nn.Linear(self.model_dim, self.model_dim * num_heads, bias=False)
         self.W_v = nn.Linear(self.model_dim, self.model_dim * num_heads, bias=False)
 
-    def forward(self, input):
+    def forward(self, query, key, value, mask=None):
         # Input shape: (batch_size, seq_len, model_dim)
+        batch_size = query.size(0)
 
-        Q, K, V = self.W_q(input), self.W_k(input), self.W_v(input)
-        Q = Q.view(
-            input.size(0), input.size(1), self.num_heads, self.model_dim
-        ).transpose(1, 2)
-        K = K.view(
-            input.size(0), input.size(1), self.num_heads, self.model_dim
-        ).transpose(1, 2)
-        V = V.view(
-            input.size(0), input.size(1), self.num_heads, self.model_dim
-        ).transpose(1, 2)
+        Q, K, V = self.W_q(query), self.W_k(key), self.W_v(value)
+        Q = Q.view(batch_size, -1, self.num_heads, self.model_dim).transpose(1, 2)
+        K = K.view(batch_size, -1, self.num_heads, self.model_dim).transpose(1, 2)
+        V = V.view(batch_size, -1, self.num_heads, self.model_dim).transpose(1, 2)
 
-        Attention = torch.matmul(Q, K.transpose(-2, -1)) / (self.model_dim**0.5)
-        Z = F.softmax(torch.matmul(Attention, V), dim=-1)
+        attention_scores = torch.matmul(Q, K.transpose(-2, -1)) / (self.model_dim**0.5)
+
+        if mask is not None:
+            attention_scores = attention_scores.masked_fill(mask == 0, float("-inf"))
+
+        attention_weights = F.softmax(attention_scores, dim=-1)
+        Z = torch.matmul(attention_weights, V)
         # Z shape: (batch_size, num_heads, seq_len, model_dim)
 
-        return Z
+        return Z, attention_weights
 
 
 class Transformer(nn.Module):
@@ -48,7 +48,10 @@ class Transformer(nn.Module):
 
     def forward(self, tokens):
         embeddings = self.embedding(tokens)
-        mha_output_norm = self.mha(self.norm(embeddings))
+        embeddings_norm = self.norm(embeddings)
+        mha_output_norm, attention_weights = self.mha(
+            embeddings_norm, embeddings_norm, embeddings_norm
+        )
         resdiual_output = (mha_output_norm + embeddings.unsqueeze(1)).transpose(1, 2)
         # resdiual_output shape: (batch_size, seq_len, num_heads, model_dim)
         dense_output = self.dense(
@@ -70,7 +73,7 @@ if __name__ == "__main__":
 
     mha = MHA(model_dim, num_heads)
     input = torch.rand(batch_size, seq_len, model_dim)
-    output = mha(input)
+    output, attention_weights = mha(input, input, input)
     print(
         f"MHA output shape: {output.shape}"
     )  # Expected shape: (batch_size, num_heads, seq_len, model_dim)
