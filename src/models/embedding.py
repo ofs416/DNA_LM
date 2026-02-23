@@ -22,4 +22,10 @@ if __name__ == "__main__":
     print(enc.pe.shape)
     tokens = torch.zeros(32, 8)
     print(enc(tokens).shape)
-    print(enc.pe)
+    print(enc.pe.shape)
+
+    enc = PositionalEncoder(32, 8)
+    print(enc.pe.shape)
+    tokens = torch.zeros(10, 32, 8)
+    print(enc(tokens).shape)
+    print(enc.pe.shape)
