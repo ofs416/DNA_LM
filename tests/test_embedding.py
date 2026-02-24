@@ -1,11 +1,11 @@
 import torch
 
 
-from src.models.embedding import PositionalEncoder
+from src.models.embedding import AbsPosEncoder
 
 
-def test_positional_encoding():
-    encoder = PositionalEncoder(max_len=100, d_model=512)
+def test_AbsPosEncoder():
+    encoder = AbsPosEncoder(max_len=100, d_model=512)
     pe = encoder.pe
     assert pe.shape == (100, 512), "Positional encoding shape is incorrect"
 

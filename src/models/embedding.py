@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 
-class PositionalEncoder(nn.Module):
+class AbsPosEncoder(nn.Module):
     def __init__(self, max_len, d_model):
         super().__init__()
         pe = torch.zeros(max_len, d_model)
@@ -18,13 +18,13 @@ class PositionalEncoder(nn.Module):
 
 
 if __name__ == "__main__":
-    enc = PositionalEncoder(32, 8)
+    enc = AbsPosEncoder(32, 8)
     print(enc.pe.shape)
     tokens = torch.zeros(32, 8)
     print(enc(tokens).shape)
     print(enc.pe.shape)
 
-    enc = PositionalEncoder(32, 8)
+    enc = AbsPosEncoder(10, 32)
     print(enc.pe.shape)
     tokens = torch.zeros(10, 32, 8)
     print(enc(tokens).shape)
