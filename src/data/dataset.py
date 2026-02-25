@@ -6,12 +6,16 @@ from src.data.tokeniser import NucleotideTokeniser
 
 
 class NucleotideDataset(Dataset):
-    def __init__(self, data_dir, max_length=300):
+    def __init__(self, data_dir, raw=True, max_length=300):
         print(f"Using data directory: {data_dir}")
         self.data_dir = data_dir
         self.max_length = max_length
         self.tokeniser = NucleotideTokeniser(max_length=max_length)
-        self.sequences = self._load_sequences()
+
+        if raw:
+            self.sequences = self._load_sequences()
+        else:
+            self.sequences = torch.load(data_dir)
 
     def _load_sequences(self):
         sequences = []
@@ -45,23 +49,15 @@ class NucleotideDataset(Dataset):
     def save(self, save_path):
         torch.save(self.sequences, save_path)
 
-    @classmethod
-    def load(cls, load_path):
-        sequences = torch.load(load_path)
-        dataset = cls(data_dir=load_path, max_length=sequences["sequences"][0].shape[0])
-        dataset.sequences = sequences
-        return dataset
-
 
 if __name__ == "__main__":
     print("Running dataset.py...")
 
     dataset = NucleotideDataset(
-        data_dir=r"data\raw\human_nontata_promoters\test", max_length=300
+        data_dir=r"data\raw\human_nontata_promoters\test", raw=True, max_length=300
     )
     print(f"Dataset length: {len(dataset)}")
-
-    print(f"Sample: {dataset[0]}")
+    print(f"Dataset Sample: {dataset[0]}")
 
     from torch.utils.data import DataLoader
 
@@ -73,8 +69,10 @@ if __name__ == "__main__":
 
     dataset.save("data/processed/human_nontata_promoters/test/nucleotide_dataset.pt")
 
-    loaded_dataset = NucleotideDataset.load(
-        "data/processed/human_nontata_promoters/test/nucleotide_dataset.pt"
+    loaded_dataset = NucleotideDataset(
+        data_dir=r"data\processed\human_nontata_promoters\test\nucleotide_dataset.pt",
+        raw=False,
+        max_length=300,
     )
     print(f"Loaded dataset length: {len(loaded_dataset)}")
     print(f"Loaded sample: {loaded_dataset[0]}")
