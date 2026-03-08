@@ -57,6 +57,54 @@ class NucleotideDataset(Dataset):
         torch.save(self.sequences, save_path)
 
 
+class MLMPretrainingDataset(Dataset):
+    def __init__(
+        self,
+        TensorDataset,
+        pad_token_id=7,
+        mask_token_id=8,
+        mask_prob=0.15,
+        rand_prob=0.1,
+        max_length=256,
+    ):
+        self.sequences = TensorDataset["sequences"]
+        self.labels = TensorDataset["sequences"]
+        self.attention_masks = TensorDataset["attention_masks"]
+
+        self.pad_token_id = pad_token_id
+        self.mask_token_id = mask_token_id
+        self.mask_prob = mask_prob
+        self.rand_prob = rand_prob
+
+        self.max_length = max_length
+
+    def __len__(self):
+        return self.max_length
+
+    def __getitem__(self, idx):
+        sequence = self.sequences[idx]
+        label = self.labels[idx]
+        attention_mask = self.attention_masks[idx]
+
+        # Create a copy of the sequence to modify
+        input_sequence = sequence.clone()
+
+        # Randomly mask tokens in the input sequence
+        mask_ids = (torch.rand(self.max_length) < self.mask_prob) & (input_sequence < 5)
+        input_sequence = torch.where(mask_ids, self.mask_token_id, input_sequence)
+
+        rand_ids = (
+            (torch.rand(self.max_length) < self.rand_prob)
+            & (input_sequence < 5)
+            & ~mask_ids
+        )
+        input_sequence = torch.where(
+            rand_ids, torch.randint(0, 5, (self.max_length,)), input_sequence
+        )
+
+        return input_sequence, attention_mask, label
+
+
 if __name__ == "__main__":
     print("Running dataset.py...")
 
