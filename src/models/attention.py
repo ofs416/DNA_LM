@@ -9,6 +9,9 @@ class MHA(nn.Module):
         self.model_dim = model_dim
         self.num_heads = num_heads
         self.head_dim = model_dim // num_heads
+        assert (
+            self.head_dim * num_heads == model_dim
+        ), "model_dim must be divisible by num_heads"
 
         self.W_q = nn.Linear(self.model_dim, self.model_dim, bias=False)
         self.W_k = nn.Linear(self.model_dim, self.model_dim, bias=False)
