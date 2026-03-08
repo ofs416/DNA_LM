@@ -14,25 +14,19 @@ class Transformer(nn.Module):
         self.embedder = nn.Embedding(num_unique_tokens, model_dim)
         self.pos_encoder = AbsPosEncoder(max_len, model_dim)
         self.mha = MHA(model_dim, num_heads)
-        self.dense = nn.Linear(model_dim * num_heads, model_dim)
+        self.dense = nn.Linear(model_dim, model_dim)
         self.norm = nn.LayerNorm(model_dim)
 
-    def forward(self, tokens):
+    def forward(self, tokens, mask=None):
         embeddings = self.embedder(tokens)
         pos_embeddings = self.pos_encoder(embeddings)
         embeddings_norm = self.norm(pos_embeddings)
         mha_output_norm, attention_weights = self.mha(
-            embeddings_norm, embeddings_norm, embeddings_norm
+            embeddings_norm, embeddings_norm, embeddings_norm, mask=mask
         )
         resdiual_output = (mha_output_norm + embeddings.unsqueeze(1)).transpose(1, 2)
         # resdiual_output shape: (batch_size, seq_len, num_heads, model_dim)
-        dense_output = self.dense(
-            resdiual_output.reshape(
-                resdiual_output.size(0),
-                resdiual_output.size(1),
-                resdiual_output.size(2) * resdiual_output.size(3),
-            )
-        )
+        dense_output = self.dense(resdiual_output)
 
         return dense_output
 
