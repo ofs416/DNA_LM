@@ -40,14 +40,26 @@ class MHA(nn.Module):
 
 
 if __name__ == "__main__":
-    model_dim = 512
-    num_heads = 8
+    model_dim = 8
+    num_heads = 4
     batch_size = 2
-    seq_len = 10
+    seq_len = 5
 
     mha = MHA(model_dim, num_heads)
     input = torch.rand(batch_size, seq_len, model_dim)
+
     output, attention_weights = mha(input, input, input)
     print(
         f"MHA output shape: {output.shape}"
     )  # Expected shape: (batch_size, num_heads, seq_len, model_dim)
+    print(f"Attention weights: {attention_weights.shape}")
+
+    mask = torch.tensor([[1, 1, 1, 0, 0], [1, 1, 1, 0, 0]])
+
+    m_output, m_attention_weights = mha(input, input, input, mask=mask)
+
+    print(f"MHA output with mask shape: {m_output.shape}")
+    print(f"Attention weights with mask: {m_attention_weights.shape}")
+
+    print(attention_weights[0])
+    print(m_attention_weights[0])
