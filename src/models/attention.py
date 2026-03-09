@@ -16,6 +16,7 @@ class MHA(nn.Module):
         self.W_q = nn.Linear(self.model_dim, self.model_dim, bias=False)
         self.W_k = nn.Linear(self.model_dim, self.model_dim, bias=False)
         self.W_v = nn.Linear(self.model_dim, self.model_dim, bias=False)
+        self.W_o = nn.Linear(self.model_dim, self.model_dim, bias=False)
 
     def forward(self, query, key, value, mask=None):
         # Input shape: (batch_size, seq_len, model_dim)
@@ -35,6 +36,7 @@ class MHA(nn.Module):
         attention_weights = F.softmax(attention_scores, dim=-1)
         Z = torch.matmul(attention_weights, V)
         Z = Z.transpose(1, 2).contiguous().view(batch_size, -1, self.model_dim)
+        Z = self.W_o(Z)
 
         return Z, attention_weights
 
