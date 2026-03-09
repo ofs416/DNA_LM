@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 
 class MHA(nn.Module):
-    def __init__(self, model_dim, num_heads):
+    def __init__(self, model_dim, num_heads, dropout=0.1):
         super().__init__()
         self.model_dim = model_dim
         self.num_heads = num_heads
@@ -18,7 +18,9 @@ class MHA(nn.Module):
         self.W_v = nn.Linear(self.model_dim, self.model_dim, bias=False)
         self.W_o = nn.Linear(self.model_dim, self.model_dim, bias=False)
 
-    def forward(self, query, key, value, mask=None):
+        self.attn_dropout = nn.Dropout(p=dropout)
+
+    def forward(self, query, key, value, mask=None, return_weights=True):
         # Input shape: (batch_size, seq_len, model_dim)
         batch_size = query.size(0)
 
@@ -34,11 +36,14 @@ class MHA(nn.Module):
             attention_scores = attention_scores.masked_fill(mask == 0, float("-inf"))
 
         attention_weights = F.softmax(attention_scores, dim=-1)
+        attention_weights = torch.nan_to_num(attention_weights)
+        attention_weights = self.attn_dropout(attention_weights)
+
         Z = torch.matmul(attention_weights, V)
         Z = Z.transpose(1, 2).contiguous().view(batch_size, -1, self.model_dim)
         Z = self.W_o(Z)
 
-        return Z, attention_weights
+        return (Z, attention_weights) if return_weights else (Z, None)
 
 
 if __name__ == "__main__":
