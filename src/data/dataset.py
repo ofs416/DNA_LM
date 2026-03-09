@@ -79,7 +79,7 @@ class MLMPretrainingDataset(Dataset):
         self.max_length = max_length
 
     def __len__(self):
-        return self.max_length
+        return len(self.sequences)
 
     def __getitem__(self, idx):
         sequence = self.sequences[idx]

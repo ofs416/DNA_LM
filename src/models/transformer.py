@@ -11,7 +11,6 @@ class Transformer(nn.Module):
         self.model_dim = model_dim
         self.num_heads = num_heads
 
-        self.embedder = nn.Embedding(num_unique_tokens, model_dim)
         self.pos_encoder = AbsPosEncoder(max_len, model_dim)
         self.mha = MHA(model_dim, num_heads)
         self.dense = nn.Linear(model_dim, model_dim)
